@@ -3,6 +3,7 @@ package com.hanks;
 import com.hanks.Hipchat;
 
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import com.atlassian.event.api.EventListener;
@@ -62,7 +63,21 @@ public class PullRequestNotifier {
 	public void commentListener(PullRequestCommentEvent commentEvent) {
         PullRequest p = commentEvent.getPullRequest();
 
-        Set<PullRequestParticipant> participants = p.getReviewers();
+        // get all participants related to the pull request, including reviewers, 
+        // non-reviewers, pull request author
+        Set<PullRequestParticipant> participants = new HashSet<PullRequestParticipant>();
+        Set<PullRequestParticipant> reviewers = p.getReviewers();
+        Set<PullRequestParticipant> non_reviewers = p.getParticipants();
+        PullRequestParticipant pullRequestAuthor = p.getAuthor();
+
+        participants.add(pullRequestAuthor);
+        participants.addAll(non_reviewers);
+        participants.addAll(reviewers);
+        
+        // comment author
+        StashUser commentAuthor = commentEvent.getComment().getAuthor();
+        String commentAuthorEmailAddress = commentAuthor.getEmailAddress();
+                
         String message = getMessageFromCommentEvent(commentEvent);
         
         if (!participants.isEmpty()) {
@@ -70,7 +85,10 @@ public class PullRequestNotifier {
                 try {
                     PullRequestParticipant participant = (PullRequestParticipant)it.next();
                     String reviewer_email = participant.getUser().getEmailAddress();
-                    Hipchat.send_message(reviewer_email, message);
+                    // send notification except comment author self.
+                    if (reviewer_email != commentAuthorEmailAddress) {
+                        Hipchat.send_message(reviewer_email, message);                        
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

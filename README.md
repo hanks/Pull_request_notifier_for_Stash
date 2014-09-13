@@ -13,7 +13,7 @@ A notification plugin for Stash using hipchat to notify reviewers when pull requ
 ## Why
 Pull request is often used as a way of code review during the teamwork, but sometimes we create a pull request and the reviewer is too late to do the review, or someone creates a comment, we notice it very lately.   
 
-In another word, the pull request is good, but the communication is not efficient during my work. So I create this plugin to use hipchat to do the **real time** notification, and also pick up some outline information as the message to let us catch up the idea more quickly.
+In another word, the pull request is good, but the communication is not efficient during the work. So I create this plugin to use hipchat to do the **real time** notification, and also pick up some outline information as the message to let us catch up the idea more quickly.
 
 ## Demo
 ![alt text][demo]

@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.io.IOException;
 
 import org.json.JSONObject;
 
@@ -26,10 +27,14 @@ public class Hipchat {
      * @param message content for message
      */
     public static void send_message(String email, String message) {
+        HttpURLConnection connection = null;
+        OutputStreamWriter wr = null;
+        BufferedReader rd = null;
+        
         try {
         	String targetURL = String.format(Constants.API, email);
 			URL url = new URL(targetURL);
-			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+			connection = (HttpURLConnection)url.openConnection();
 			
 			// set http header info
             connection.setRequestMethod("POST");
@@ -49,25 +54,44 @@ public class Hipchat {
             
             // write request
             connection.connect();
-            OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+            wr = new OutputStreamWriter(connection.getOutputStream());
             wr.write(jsonData.toString());
             wr.flush();
-            wr.close();
             
             // send request	
             InputStream is = connection.getInputStream();
             
             // get response
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            rd = new BufferedReader(new InputStreamReader(is));
             String line;
             StringBuffer response = new StringBuffer(); 
             while((line = rd.readLine()) != null) {
                 response.append(line);
                 response.append('\r');
             }
-            rd.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		} finally {
+            // clean up resources
+            if (wr != null) {
+                try {
+                    wr.close();                                    
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (rd != null) {
+                try {
+                    rd.close();                
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (connection != null) {
+                connection.disconnect();                
+            }
+        }
     }
 }
